@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: clawlett
+  ai:
+    openai:
+      base-url: https://ark.cn-beijing.volces.com/api/coding/v3
+      # 顶层 api-key，供 chat/audio/speech 等所有模型自动配置共享
+      api-key: ${ARK_API_KEY}
+      chat:
+        # 方舟网关路径不含 /v1 前缀，需覆盖默认的 /v1/chat/completions
+        completions-path: /chat/completions
+        options:
+          model: ${ARK_MODEL:doubao-seed-2.0-code}
+          temperature: 0.7
+    mcp:
+      client:
+        # 首次握手含 npx 拉包 + 服务器启动，默认 20s 不够，放宽到 60s
+        request-timeout: 60s
+        # MCP stdio 连接：每个连接一个外部工具服务器，Agent 自动发现其工具
+        stdio:
+          connections:
+            # 演示用：MCP 官方文件系统服务器（需先 npm install -g @modelcontextprotocol/server-filesystem）
+            # 注意：Windows 下 command 必须用 .cmd 全路径，Java ProcessBuilder 不解析 PATH 中的 cmd 脚本
+            filesystem:
+              command: F:/Node/npx.cmd
+              args: ["-y", "@modelcontextprotocol/server-filesystem", "C:/Users/27838"]
+server:
+  port: 8080
+
+logging:
+    level:
+      org.springframework.ai.*: DEBUG
