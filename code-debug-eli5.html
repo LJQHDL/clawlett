@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Clawlett 代码调试地图 · ELI5</title>
+  <style>
+    :root{--bg:#111827;--panel:#1f2937;--panel2:#0f172a;--ink:#e5eef7;--muted:#9fb0c2;--green:#56e39f;--yellow:#ffd166;--blue:#71c7ec;--pink:#ff8fab;--line:#334155;--code:#08111f}
+    *{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 10% 0,#20354c,#111827 45%,#090d15);color:var(--ink);font:15px/1.6 "Microsoft YaHei","PingFang SC",system-ui,sans-serif}
+    .wrap{max-width:1180px;margin:auto;padding:28px 18px 54px}.hero,.card{background:rgba(31,41,55,.88);border:1px solid #466078;border-radius:18px;box-shadow:0 16px 45px #0004}.hero{padding:25px 28px;margin-bottom:18px}.tag{display:inline-block;color:#142031;background:var(--green);font-weight:800;padding:3px 10px;border-radius:99px}.hero h1{font-size:clamp(28px,5vw,50px);line-height:1.1;margin:12px 0 7px}.hero p{color:var(--muted);margin:0;font-size:17px}
+    h2{font-size:21px;margin:0 0 12px}.card{padding:20px;margin-top:18px}.legend{display:flex;flex-wrap:wrap;gap:8px;color:var(--muted);font-size:13px}.legend span{padding:3px 8px;border:1px solid var(--line);border-radius:99px}.legend .fe{border-color:var(--blue);color:var(--blue)}.legend .be{border-color:var(--yellow);color:var(--yellow)}.legend .fw{border-color:var(--pink);color:var(--pink)}
+    .route{display:flex;align-items:center;gap:8px;overflow:auto;padding:7px 0 3px;min-height:82px}.route .box{min-width:145px;text-align:center;padding:12px 9px;border:2px solid var(--line);border-radius:14px;background:var(--panel2)}.route .box b{display:block}.route .box small{color:var(--muted)}.route .active{border-color:var(--green);box-shadow:0 0 0 3px #56e39f25}.route .arrow{color:var(--green);font-size:25px}
+    .debug{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(260px,.65fr);gap:16px}.toolbar{display:flex;gap:8px;align-items:center;margin-bottom:12px}.toolbar button{border:1px solid var(--green);background:#183e34;color:var(--green);padding:7px 12px;border-radius:8px;cursor:pointer;font-weight:700}.toolbar button:hover{background:#245947}.toolbar .counter{margin-left:auto;color:var(--muted);font-family:Consolas,monospace}.code{background:var(--code);border:1px solid #263b50;border-radius:12px;overflow:auto;font:13px/1.75 Consolas,"Cascadia Code",monospace}.code-line{display:grid;grid-template-columns:42px 1fr;min-width:640px;padding:0 12px}.code-line .ln{color:#52677c;text-align:right;padding-right:13px;user-select:none}.code-line code{white-space:pre;color:#d8e5f0}.code-line.active{background:#56e39f1d;border-left:3px solid var(--green);padding-left:9px}.code-line.active code{color:#fff}.code-line .kw{color:#c792ea}.code-line .fn{color:#82aaff}.code-line .str{color:#ecc48d}.code-line .cm{color:#607d8b}
+    .stack{display:grid;gap:10px}.stackbox{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px}.stackbox b{font:13px Consolas,monospace;color:var(--yellow)}.stackbox p{margin:4px 0 0;color:var(--muted);font-size:13px}.var{display:grid;grid-template-columns:100px 1fr;gap:6px;font:13px Consolas,monospace}.var dt{color:var(--muted)}.var dd{margin:0;color:var(--green);overflow-wrap:anywhere}
+    .explain{display:grid;grid-template-columns:44px 1fr;gap:11px;align-items:start}.bubble{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--yellow);color:#2d260d;font-weight:900}.explain p{margin:0}.explain .hint{color:var(--muted);font-size:13px}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.mini{border:1px solid var(--line);border-radius:12px;padding:13px;background:#172230}.mini strong{display:block;color:var(--blue);font-family:Consolas,monospace}.mini span{color:var(--muted);font-size:13px}.warn{border-color:#8e6c31;background:#302819}.warn h2{color:var(--yellow)}.warn p{color:#e6d5a2;margin:5px 0}.footer{color:var(--muted);font-size:12px;text-align:center;margin-top:18px}
+    @media(max-width:780px){.debug{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.wrap{padding:16px 10px 38px}.hero,.card{padding:16px}.route{align-items:stretch}.route .box{min-width:125px}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <span class="tag">ELI5 · IDE 单步调试版</span>
+      <h1>跟着一条消息，走完 Clawlett 的代码</h1>
+      <p>点击“下一步”，就像在 IDE 里按 F10。左边看当前源码，右边看调用栈和变量。</p>
+    </section>
+
+    <section class="card">
+      <h2>整条路线：消息这颗小球怎么跑？</h2>
+      <div class="legend"><span class="fe">前端</span><span class="be">后端</span><span class="fw">工具 / 外部服务</span></div>
+      <div class="route" id="route"></div>
+    </section>
+
+    <section class="card">
+      <div class="toolbar"><button id="prev">← 上一步</button><button id="next">下一步 →</button><button id="reset">重置</button><span class="counter" id="counter"></span></div>
+      <div class="debug">
+        <div>
+          <h2 id="stepTitle"></h2>
+          <div class="code" id="code"></div>
+        </div>
+        <aside class="stack">
+          <div class="stackbox"><b>CALL STACK · 调用栈</b><div id="stack"></div></div>
+          <div class="stackbox"><b>VARIABLES · 当前变量</b><dl class="var" id="vars"></dl></div>
+          <div class="stackbox"><b>WATCH · 这一行在干嘛</b><p id="watch"></p></div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>把关键代码翻译成“小朋友语言”</h2>
+      <div class="grid">
+        <div class="mini"><strong>setMessages(prev =&gt; [...prev, userMsg])</strong><span>把新消息放到聊天列表最后面。</span></div>
+        <div class="mini"><strong>await fetch('/chat?...')</strong><span>前端打电话给后端，并等它回答。</span></div>
+        <div class="mini"><strong>if (agent == null)</strong><span>第一次才组装管家，之后复用同一个。</span></div>
+        <div class="mini"><strong>agent.call(message)</strong><span>把任务交给 Agent 的“大脑”。</span></div>
+        <div class="mini"><strong>.tools(...)</strong><span>把工具放进 Agent 的工具箱。</span></div>
+        <div class="mini"><strong>mcpToolCallbackProvider.getToolCallbacks()</strong><span>把 MCP 插座里的外部工具接进来。</span></div>
+      </div>
+    </section>
+
+    <section class="card warn">
+      <h2>调试时要记住的 3 件事</h2>
+      <p>1. <code>agent.call(message)</code> 里面的 ReAct 循环来自依赖库，不在当前项目源码里；这里展示的是它的可理解流程。</p>
+      <p>2. `MemorySaver` 是内存记忆：后端重启后，对话上下文会消失。</p>
+      <p>3. Shell、文件、浏览器和 Python 都能影响真实电脑；代码注释里的“sandbox”不能自动等于严格安全隔离。</p>
+    </section>
+
+    <p class="footer">源码定位：frontend/src/hooks/useChat.ts、frontend/vite.config.ts、ChatController.java、SkillsAgent.java、application.yml。</p>
+  </main>
+  <script>
+    const steps = [
+      {title:'断点 1 · 用户点击发送', file:'frontend/src/App.tsx:80-84', code:[
+        ['80','const submit = () => {'],['81','  const text = input.trim()'],['82','  if (!text || loading) return'],['83','  onSend(text)'],['84','  setInput(\'\')'],['85','}']], active:3, stack:['submit()','ChatArea()','App()'], vars:{input:'"帮我整理文件"',text:'"帮我整理文件"',loading:'false'}, watch:'先把输入框的字拿出来。如果不是空的，而且 Agent 没在忙，就调用父组件传下来的 onSend。'},
+      {title:'断点 2 · useChat.send 开始', file:'frontend/src/hooks/useChat.ts:41-48', code:[
+        ['41','const send = useCallback('],['42','  async (text: string) => {'],['43','    const userMsg = { id: ++msgId, role: \'user\', text }'],['44','    setMessages((prev) => [...prev, userMsg])'],['45','    setLoading(true)'],['46','    setError(null)'],['48','    const actId_ = addActivity(\'agent 调用\', text)']], active:4, stack:['send(text)','submit()','ChatArea()','App()'], vars:{text:'"帮我整理文件"',userMsg:'{ role: "user", text: ... }',loading:'true',actId_:'1'}, watch:'React 状态先更新：聊天里出现你的话，按钮进入 loading，右侧活动栏记下一条“正在调用”。'},
+      {title:'断点 3 · 前端发 HTTP 请求', file:'frontend/src/hooks/useChat.ts:50-55', code:[
+        ['50','try {'],['51','  const resp = await fetch('],['52','    `/chat?message=${encodeURIComponent(text)}`'],['53','  )'],['54','  if (!resp.ok) throw new Error(...)'],['55','  const raw = await resp.text()']], active:1, stack:['fetch()','send(text)','submit()'], vars:{url:'"/chat?message=%E5%B8%AE..."',method:'GET',resp:'等待后端响应',raw:'未定义'}, watch:'await 会暂停这里。开发环境里，Vite 会把 /chat 转发到 localhost:8080。'},
+      {title:'断点 4 · Vite 代理转发', file:'frontend/vite.config.ts:7-13', code:[
+        ['7','server: {'],['8','  proxy: {'],['9','    \'/chat\': {'],['10','      target: \'http://localhost:8080\',' ],['11','      changeOrigin: true,'],['12','    }'],['13','  }']], active:4, stack:['Vite proxy','browser fetch()'], vars:{incoming:'localhost:5173/chat',target:'localhost:8080/chat',route:'后端 Spring Boot'}, watch:'浏览器只认识 5173；Vite 像邮递员，把 /chat 信件送到 8080。'},
+      {title:'断点 5 · Spring 找到 Controller', file:'ChatController.java:21-27', code:[
+        ['21','@GetMapping("/chat")'],['22','public String chat(@RequestParam("message") String message)'],['23','    throws GraphRunnerException {'],['24','  if (agent == null) {'],['25','    agent = skillsAgent.buildAgent(chatModel);'],['26','  }'],['27','  return String.valueOf(agent.call(message));']], active:5, stack:['ChatController.chat(message)','DispatcherServlet','HTTP GET /chat'], vars:{message:'"帮我整理文件"',agent:'null → 即将创建',chatModel:'Spring 注入的 ChatModel'}, watch:'第一次请求 agent 还是 null，所以进入 buildAgent；创建后，才会执行 agent.call。'},
+      {title:'断点 6 · SkillsAgent 组装“管家”', file:'SkillsAgent.java:54-65, 69-98', code:[
+        ['55','FileSystemSkillRegistry skillRegistry = ...'],['56','  .userSkillsDirectory(System.getProperty("user.home") + "/.agents/skills")'],['59','SkillsAgentHook skillsHook = ...'],['63','ShellToolAgentHook shellHook = ...'],['64','  .shellTool2(ShellTool2.builder(System.getProperty("user.dir"))'],['69','ReactAgent agent = ReactAgent.builder()'],['70','  .name("skills-integration-agent")'],['86','  .model(chatModel)'],['87','  .saver(new MemorySaver())'],['88','  .tools(PythonTool..., BrowserTool..., 文件工具...)'],['95','  .tools(mcpToolCallbackProvider.getToolCallbacks())'],['96','  .hooks(List.of(skillsHook, shellHook))'],['98','  .build()']], active:9, stack:['SkillsAgent.buildAgent(chatModel)','ChatController.chat(message)'], vars:{skillDir:'~/.agents/skills',workspace:'System.getProperty("user.dir")',tools:'Python + Browser + File + MCP',memory:'MemorySaver'}, watch:'这里不是执行任务，而是先把大脑、工具箱、技能钩子、记忆盒子全部装好。'},
+      {title:'断点 7 · Agent 开始 ReAct', file:'ChatController.java:27 → 依赖库 ReactAgent', code:[
+        ['27','return String.valueOf(agent.call(message));'],['  ','// 依赖库内部：'],['  ','// 1. 把 systemPrompt + message 发给 chatModel'],['  ','// 2. 如果模型要工具，就执行对应 ToolCallback'],['  ','// 3. 把工具结果再发回模型'],['  ','// 4. 重复，直到得到最终回答']], active:0, stack:['ReactAgent.call(message)','ChatController.chat(message)'], vars:{message:'"帮我整理文件"',decision:'由 LLM 选择工具',result:'可能经历多轮工具调用'}, watch:'这就是 ReAct：想一下、做一下、看结果，再想一下。具体循环在 spring-ai-alibaba 依赖库里。'},
+      {title:'断点 8 · 回到前端，显示答案', file:'frontend/src/hooks/useChat.ts:55-64', code:[
+        ['55','const raw = await resp.text()'],['56','const parsed = parseAssistantText(raw)'],['57','setMessages((prev) => [...prev, {'],['58','  role: \'assistant\', text: parsed, raw'],['59','}])'],['60','} catch (e) { ... }'],['63','} finally {'],['64','  setLoading(false)'],['65','}']], active:1, stack:['send(text)','ChatArea()','App()'], vars:{raw:'后端返回的字符串',parsed:'提取出的 textContent',messages:'用户消息 + Agent 回复',loading:'false'}, watch:'收到字符串后，先 parseAssistantText 提取真正回答，再放入 messages，最后关闭 loading。'}
+    ];
+    let current = 0;
+    const routeNames = ['🧑 前端','📨 fetch','🚚 Vite','☕ Controller','🧰 buildAgent','🤖 ReactAgent','💬 回复'];
+    const route = document.getElementById('route');
+    routeNames.forEach((name,i)=>{const el=document.createElement('div');el.className='box';el.innerHTML='<b>'+name+'</b><small>'+(i===0?'App.tsx':i===1?'useChat.ts':i===2?'vite.config.ts':i===3?'ChatController':i===4?'SkillsAgent':i===5?'依赖库内部':'useChat.ts')+'</small>';route.appendChild(el);if(i<routeNames.length-1){const a=document.createElement('div');a.className='arrow';a.textContent='→';route.appendChild(a)}});
+    function render(){const s=steps[current];document.getElementById('counter').textContent=(current+1)+' / '+steps.length;document.getElementById('stepTitle').textContent=s.title+'  ·  '+s.file;document.getElementById('code').innerHTML=s.code.map((l,i)=>'<div class="code-line '+(i===s.active?'active':'')+'"><span class="ln">'+l[0]+'</span><code>'+escapeHtml(l[1])+'</code></div>').join('');document.getElementById('stack').innerHTML=s.stack.map(x=>'<div style="font:13px Consolas;color:var(--blue);margin-top:5px">↳ '+x+'</div>').join('');document.getElementById('vars').innerHTML=Object.entries(s.vars).map(([k,v])=>'<dt>'+k+'</dt><dd>'+escapeHtml(v)+'</dd>').join('');document.getElementById('watch').textContent=s.watch;document.querySelectorAll('.route .box').forEach((el,i)=>el.classList.toggle('active',i===Math.min(current,6)));}
+    function escapeHtml(v){return v.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')}
+    document.getElementById('next').onclick=()=>{current=Math.min(steps.length-1,current+1);render()};document.getElementById('prev').onclick=()=>{current=Math.max(0,current-1);render()};document.getElementById('reset').onclick=()=>{current=0;render()};render();
+  </script>
+</body>
+</html>

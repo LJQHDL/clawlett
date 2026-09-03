@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Clawlett 深度代码调试 · ELI5</title>
+  <style>
+    :root{--bg:#0b1220;--panel:#111c2d;--panel2:#0b1422;--ink:#eaf3fb;--muted:#94a9bd;--line:#2e4660;--green:#59e391;--blue:#70c9ef;--yellow:#ffd166;--red:#ff879f;--purple:#cba6f7}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 12% 0,#1d3a53,#0b1220 46%,#070b12);color:var(--ink);font:15px/1.65 "Microsoft YaHei","PingFang SC",system-ui,sans-serif}.wrap{max-width:1220px;margin:auto;padding:26px 16px 54px}.hero,.card{background:rgba(17,28,45,.92);border:1px solid #45617d;border-radius:18px;box-shadow:0 16px 50px #0005}.hero{padding:26px 28px;margin-bottom:18px}.tag{display:inline-block;background:var(--green);color:#102319;border-radius:99px;padding:3px 11px;font-weight:900}.hero h1{font-size:clamp(27px,5vw,51px);line-height:1.1;margin:12px 0 8px}.hero p{margin:0;color:var(--muted);font-size:17px}.card{padding:20px;margin-top:18px}h2{font-size:21px;margin:0 0 12px}h3{font-size:16px;color:var(--blue);margin:17px 0 7px}code{font-family:Consolas,"Cascadia Code",monospace;color:var(--green);background:#08111d;padding:2px 5px;border-radius:5px}.call-flow{display:flex;align-items:center;gap:8px;overflow:auto;padding:8px 0}.call-flow .node{min-width:142px;text-align:center;border:2px solid var(--line);border-radius:13px;padding:11px 9px;background:var(--panel2)}.call-flow .node b{display:block}.call-flow .node small{display:block;color:var(--muted);font:12px Consolas}.call-flow .arrow{color:var(--green);font-size:24px}.pill-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.pill{border:1px solid var(--line);border-radius:99px;padding:3px 9px;font:12px Consolas;color:var(--muted)}.pill.front{border-color:var(--blue);color:var(--blue)}.pill.back{border-color:var(--yellow);color:var(--yellow)}.pill.tool{border-color:var(--red);color:var(--red)}
+    .debug{display:grid;grid-template-columns:minmax(0,1.18fr) minmax(290px,.82fr);gap:16px}.toolbar{display:flex;gap:8px;align-items:center;margin-bottom:12px}.toolbar button{cursor:pointer;border:1px solid var(--green);border-radius:8px;background:#163c31;color:var(--green);padding:7px 11px;font-weight:800}.toolbar button:hover{background:#245d49}.toolbar .count{margin-left:auto;color:var(--muted);font:13px Consolas}.progress{height:5px;background:#1a2c40;border-radius:99px;margin-bottom:14px;overflow:hidden}.progress i{display:block;height:100%;width:0;background:var(--green);transition:width .2s}.step-title{margin-bottom:10px}.step-title small{color:var(--muted);font:12px Consolas}.code{background:#07101b;border:1px solid #294158;border-radius:12px;overflow:auto;font:13px/1.78 Consolas,"Cascadia Code",monospace}.line{display:grid;grid-template-columns:48px 1fr;min-width:710px;padding:0 12px}.line .ln{color:#50677c;text-align:right;padding-right:15px;user-select:none}.line code{white-space:pre;color:#d9e7f3;background:transparent;padding:0}.line.active{background:#59e3911c;border-left:3px solid var(--green);padding-left:9px}.line.active code{color:#fff}.stack{display:grid;gap:10px}.stackbox{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px}.stackbox>b{color:var(--yellow);font:13px Consolas}.frame{font:13px Consolas;color:var(--blue);margin-top:6px}.frame.current{color:var(--green);font-weight:900}.vars{display:grid;grid-template-columns:108px 1fr;font:13px Consolas;margin:8px 0 0}.vars dt{color:var(--muted)}.vars dd{margin:0;color:var(--green);overflow-wrap:anywhere}.watch{color:var(--muted);font-size:13px;margin:8px 0 0}.badge{display:inline-block;font:11px Consolas;padding:2px 7px;border:1px solid var(--line);border-radius:5px;color:var(--purple);margin:5px 0}
+    .explain{display:grid;grid-template-columns:42px 1fr;gap:11px;align-items:start;margin:10px 0}.bubble{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--yellow);color:#2a230b;font-weight:900}.explain p{margin:0}.explain small{display:block;color:var(--muted);font-size:13px}.columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.subcard{border:1px solid var(--line);border-radius:13px;padding:15px;background:#142234}.subcard h3{margin-top:0}.subcard pre{white-space:pre-wrap;background:#07101b;border:1px solid #294158;border-radius:9px;padding:12px;overflow:auto;font:12px/1.65 Consolas;color:#d9e7f3}.subcard ul{margin:7px 0 0;padding-left:20px;color:var(--muted)}.subcard li{margin:4px 0}.warning{border-color:#80672d;background:#2b2518}.warning h2{color:var(--yellow)}.warning p{color:#ead9a6}.source{font:12px Consolas;color:var(--muted);overflow-wrap:anywhere}.footer{text-align:center;color:var(--muted);font-size:12px;margin-top:18px}@media(max-width:800px){.debug,.columns{grid-template-columns:1fr}.wrap{padding:15px 9px 40px}.hero,.card{padding:16px}}
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <section class="hero">
+    <span class="tag">ELI5 · 深度 IDE 调试版</span>
+    <h1>把 Clawlett 当成一颗“会跑的消息小球”</h1>
+    <p>下面的每个断点，都对应仓库里的真实语句。按“下一步”观察：谁调用谁、参数是什么、结果又回到哪里。</p>
+  </section>
+
+  <section class="card">
+    <h2>先记住 4 个大角色</h2>
+    <div class="call-flow">
+      <div class="node"><b>🧑 React UI</b><small>收集输入</small></div><div class="arrow">→</div>
+      <div class="node"><b>🚪 Controller</b><small>HTTP 门口</small></div><div class="arrow">→</div>
+      <div class="node"><b>🧠 ReactAgent</b><small>思考和循环</small></div><div class="arrow">→</div>
+      <div class="node"><b>🧰 Tools</b><small>真的动手</small></div><div class="arrow">→</div>
+      <div class="node"><b>🌍 电脑 / LLM</b><small>外部世界</small></div>
+    </div>
+    <div class="pill-row"><span class="pill front">frontend/src/hooks/useChat.ts</span><span class="pill back">ChatController.java</span><span class="pill back">SkillsAgent.java</span><span class="pill tool">PythonTool / BrowserTool / File Tools</span><span class="pill tool">MCP</span></div>
+  </section>
+
+  <section class="card">
+    <h2>选择一个具体例子</h2>
+    <div class="explain"><div class="bubble">例</div><p>假设你输入：<code>用 Python 计算 2 + 2</code><small>这不是普通的“查答案”，而是可能触发工具调用的任务。</small></p></div>
+    <div class="columns">
+      <div class="subcard"><h3>模型可能做的决定</h3><pre>我需要计算。
+调用工具：python_tool
+参数：{ "code": "2 + 2" }</pre></div>
+      <div class="subcard"><h3>工具箱里对应的积木</h3><pre>PythonTool.createPythonToolCallback(...)
+        ↓
+FunctionToolCallback("python_tool", ...)
+        ↓
+PythonTool.apply(request, toolContext)</pre></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="toolbar"><button id="prev">← 上一步</button><button id="next">下一步 →</button><button id="reset">重置</button><span class="count" id="count"></span></div>
+    <div class="progress"><i id="progress"></i></div>
+    <div class="debug">
+      <div>
+        <h2 class="step-title" id="title"></h2>
+        <div class="code" id="code"></div>
+      </div>
+      <aside class="stack">
+        <div class="stackbox"><b>CALL STACK · 谁在呼叫谁</b><div id="stack"></div></div>
+        <div class="stackbox"><b>VARIABLES · 这一刻的变量</b><dl class="vars" id="vars"></dl></div>
+        <div class="stackbox"><b>WATCH · 小朋友翻译</b><p class="watch" id="watch"></p></div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>断点之后：各个工具怎么真正干活</h2>
+    <div class="columns">
+      <article class="subcard"><h3>🐍 PythonTool</h3><div class="source">PythonTool.java:69-73, 76-134</div><pre>FunctionToolCallback.builder("python_tool", new PythonTool())
+  .inputType(PythonRequest.class)
+  .build();
+
+apply(request, toolContext)
+  → Context.newBuilder("python")
+  → context.eval("python", request.code)
+  → convertResultToString(result)</pre><ul><li>先检查 code 不是空的。</li><li>用 GraalVM 执行 Python。</li><li>如果缺模块，调用 <code>pip install</code>，再重试一次。</li><li>最后把数字、字符串、数组变成 Java 字符串。</li></ul></article>
+      <article class="subcard"><h3>🌐 BrowserTool</h3><div class="source">BrowserTool.java:85-142, 145-173</div><pre>new BrowserTool(false)
+  → initializeDriver()
+  → WebDriverManager.chromedriver().setup()
+  → new ChromeDriver(options)
+
+apply(request, toolContext)
+  → switch (request.action)
+  → handleNavigate / handleClick / handleExtract ...</pre><ul><li><code>false</code> 表示这次不是 headless，会尝试打开真实 Chrome 窗口。</li><li>例如 navigate 调用 <code>driver.get(url)</code>。</li><li>click 先 <code>findElement(selector)</code>，再 <code>element.click()</code>。</li></ul></article>
+      <article class="subcard"><h3>📁 文件工具</h3><div class="source">SkillsAgent.java:4-5, 91-93</div><pre>WriteFileTool.createWriteFileToolCallback(...)
+ReadFileTool.createReadFileToolCallback(...)
+ListFilesTool.createListFilesToolCallback(...)</pre><ul><li>这些工具来自 Spring AI Alibaba 的扩展包，不是本仓库自己实现的类。</li><li>Agent 看到工具描述后，决定传什么路径和内容。</li></ul></article>
+      <article class="subcard"><h3>🧩 MCP 工具</h3><div class="source">application.yml:15-26 · McpToolPrefixConfig.java:17-23</div><pre>filesystem:
+  command: F:/Node/npx.cmd
+  args: ["-y", "@modelcontextprotocol/server-filesystem", "..."]
+
+"mcp_" + tool.name()</pre><ul><li>Spring 启动 MCP 外部进程。</li><li><code>ToolCallbackProvider</code> 把外部工具交给 <code>SkillsAgent</code>。</li><li>加 <code>mcp_</code> 前缀，避免和内置 read/write 工具重名。</li></ul></article>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>为什么有些地方“看不到源码”？</h2>
+    <div class="explain"><div class="bubble">1</div><p><code>agent.call(message)</code> 是本项目能看到的入口，但 ReAct 的循环实现位于 <code>spring-ai-alibaba-agent-framework</code> 依赖里。<small>所以页面用伪代码表示：发给模型 → 模型要工具 → 执行工具 → 把结果再发给模型 → 得到最终答案。</small></p></div>
+    <div class="explain"><div class="bubble">2</div><p>LLM 的地址和模型来自 <code>application.yml</code>：<code>base-url</code>、<code>api-key</code>、<code>model</code>。<small>Spring Boot 自动创建 <code>ChatModel</code>，再通过构造函数注入到 <code>ChatController</code>。</small></p></div>
+    <div class="explain"><div class="bubble">3</div><p>Spring 的 <code>@Service</code>、<code>@RestController</code>、构造函数参数，是“自动接线”。<small>你没有手动写 <code>new SkillsAgent(...)</code>，Spring 会替你创建并传入依赖。</small></p></div>
+  </section>
+
+  <section class="card warning">
+    <h2>调试时最容易误解的地方</h2>
+    <p>① <code>agent == null</code> 只在第一次请求成立；后续请求复用同一个 Agent。② <code>new MemorySaver()</code> 只存内存，重启就忘。③ 前端活动栏是本地状态，不等于后端实时工具日志。④ Python 配置了 <code>allowAllAccess(true)</code>、允许 I/O 和创建进程，不能把它当成严格沙箱。</p>
+  </section>
+
+  <p class="footer">深度说明依据当前仓库源码整理；代码定位可直接在 IDE 中打开对应文件和行号。</p>
+</main>
+<script>
+  const steps = [
+    {t:'断点 1 · React 把按钮点击变成 submit()',f:'frontend/src/App.tsx:80-84',c:[['80','const submit = () => {'],['81','  const text = input.trim()'],['82','  if (!text || loading) return'],['83','  onSend(text)'],['84','  setInput(\'\')'],['85','}']],a:3,s:['submit()','ChatArea()','App()'],v:{input:'"用 Python 计算 2 + 2"',text:'"用 Python 计算 2 + 2"',loading:'false'},w:'先去掉首尾空格；没有文字或正在加载时直接返回。否则把 onSend 调用出去。'},
+    {t:'断点 2 · useChat.send 创建用户消息',f:'frontend/src/hooks/useChat.ts:41-48',c:[['41','const send = useCallback('],['42','  async (text: string) => {'],['43','    const userMsg = { id: ++msgId, role: \'user\', text }'],['44','    setMessages((prev) => [...prev, userMsg])'],['45','    setLoading(true)'],['46','    setError(null)'],['48','    const actId_ = addActivity(\'agent 调用\', text)']],a:4,s:['send(text)','submit()','ChatArea()'],v:{msgId:'1',userMsg:'{role:"user", text:...}',messages:'加入 1 条',loading:'true',actId_:'1'},w:'画面先显示你的消息，再把 loading 打开；这时还没有请求后端。'},
+    {t:'断点 3 · addActivity 写入右侧活动栏',f:'frontend/src/hooks/useChat.ts:28-35',c:[['28','const addActivity = useCallback((label, detail, running = true) => {'],['29','  const id = ++actId'],['30','  setActivities((prev) => ['],['31','    { id, label, detail, running, time: new Date()... },'],['32','    ...prev,'],['33','  ])'],['34','  return id'],['35','}, [])']],a:2,s:['addActivity()','send(text)','App()'],v:{actId:'1',label:'"agent 调用"',detail:'"用 Python 计算 2 + 2"',running:'true'},w:'活动记录只是 React state。它记录“开始了”，不是后端发来的真实工具事件。'},
+    {t:'断点 4 · fetch 把文本放进 URL',f:'frontend/src/hooks/useChat.ts:50-55',c:[['50','try {'],['51','  const resp = await fetch('],['52','    `/chat?message=${encodeURIComponent(text)}`'],['53','  )'],['54','  if (!resp.ok) throw new Error(`HTTP ${resp.status}`)'],['55','  const raw = await resp.text()']],a:1,s:['fetch()','send(text)','addActivity()'],v:{text:'"用 Python 计算 2 + 2"',url:'/chat?message=...',method:'GET',resp:'等待响应'},w:'await 像暂停键：JavaScript 在这里等后端，但页面可以显示 loading。'},
+    {t:'断点 5 · Vite 把 5173 的请求转给 8080',f:'frontend/vite.config.ts:7-13',c:[['7','server: {'],['8','  proxy: {'],['9','    \'/chat\': {'],['10','      target: \'http://localhost:8080\',' ],['11','      changeOrigin: true,'],['12','    }'],['13','  }']],a:4,s:['Vite proxy','browser fetch()'],v:{browser:'localhost:5173',target:'localhost:8080',path:'/chat'},w:'开发服务器充当邮递员，解决前端 5173 和后端 8080 不同端口的问题。'},
+    {t:'断点 6 · Spring 用注解匹配 chat()',f:'ChatController.java:9-22',c:[['9','@RestController'],['10','public class ChatController {'],['12','  private final SkillsAgent skillsAgent;'],['13','  private final ChatModel chatModel;'],['16','  public ChatController(SkillsAgent skillsAgent, ChatModel chatModel) {'],['17','    this.skillsAgent = skillsAgent;'],['18','    this.chatModel = chatModel;'],['21','  @GetMapping("/chat")'],['22','  public String chat(@RequestParam("message") String message)']],a:8,s:['ChatController.chat(message)','DispatcherServlet','GET /chat'],v:{message:'"用 Python 计算 2 + 2"',skillsAgent:'Spring 注入',chatModel:'Spring 注入'},w:'@GetMapping 告诉 Spring：看到 GET /chat，就调用下面这个方法。'},
+    {t:'断点 7 · 第一次请求才 buildAgent()',f:'ChatController.java:24-27',c:[['24','if (agent == null) {'],['25','  agent = skillsAgent.buildAgent(chatModel);'],['26','}'],['27','return String.valueOf(agent.call(message));']],a:1,s:['ChatController.chat(message)','DispatcherServlet'],v:{agent:'null → ReactAgent 对象',message:'"用 Python 计算 2 + 2"'},w:'第一次进入 if，组装一个 Agent；以后 agent 不为空，直接跳到第 27 行。'},
+    {t:'断点 8 · 注册 Skills 和 Shell Hook',f:'SkillsAgent.java:54-65',c:[['55','FileSystemSkillRegistry skillRegistry = FileSystemSkillRegistry.builder()'],['56','  .userSkillsDirectory(System.getProperty("user.home") + "/.agents/skills")'],['59','SkillsAgentHook skillsHook = SkillsAgentHook.builder()'],['60','  .skillRegistry(skillRegistry).build()'],['63','ShellToolAgentHook shellHook = ShellToolAgentHook.builder()'],['64','  .shellTool2(ShellTool2.builder(System.getProperty("user.dir"))'],['65','    .withCommandTimeout(10000).build()).build()']],a:3,s:['SkillsAgent.buildAgent()','ChatController.chat()'],v:{userHome:'当前用户目录',skills:'~/.agents/skills',workspace:'当前工作目录',timeout:'10000 ms'},w:'SkillsHook 负责加载技能；ShellHook 负责把命令执行能力挂进 Agent。'},
+    {t:'断点 9 · 把模型和内置工具装进 Agent',f:'SkillsAgent.java:69-94',c:[['69','ReactAgent agent = ReactAgent.builder()'],['70','  .name("skills-integration-agent")'],['71','  .systemPrompt("你是一个电脑管家...")'],['86','  .model(chatModel)'],['87','  .saver(new MemorySaver())'],['88','  .tools('],['89','    PythonTool.createPythonToolCallback(...),'],['90','    BrowserTool.createBrowserToolCallback(..., false),'],['91','    WriteFileTool.createWriteFileToolCallback(...),'],['92','    ReadFileTool.createReadFileToolCallback(...),'],['93','    ListFilesTool.createListFilesToolCallback(...)'],['94','  )']],a:8,s:['ReactAgent.builder()','SkillsAgent.buildAgent()'],v:{model:'chatModel',memory:'MemorySaver',tools:'5 个内置工具',browserHeadless:'false'},w:'注意：create...Callback 不是立刻让模型做事，而是把“工具说明 + Java 回调”登记进去。'},
+    {t:'断点 10 · 把 MCP 外部工具接上',f:'SkillsAgent.java:95-98 + application.yml:15-26',c:[['95','.tools(mcpToolCallbackProvider.getToolCallbacks())'],['96','.hooks(List.of(skillsHook, shellHook))'],['97','.enableLogging(true)'],['98','.build();']],a:0,s:['ReactAgent.builder()','ToolCallbackProvider','MCP stdio server'],v:{mcp:'外部工具回调集合',hooks:'skillsHook + shellHook',logging:'true'},w:'MCP 像 USB 插座：外面的文件系统服务先启动，再把工具清单交进来。'},
+    {t:'断点 11 · Agent.call 开始 ReAct 循环',f:'ChatController.java:27 → 依赖库内部',c:[['27','return String.valueOf(agent.call(message));'],['  ','// 依赖库内部的理解版：'],['  ','// chatModel.call(systemPrompt + message)'],['  ','// 模型返回 tool call: python_tool({code:"2 + 2"})'],['  ','// 执行 ToolCallback，再把结果发回模型'],['  ','// 模型最终返回 assistant message']],a:0,s:['ReactAgent.call(message)','ChatController.chat(message)'],v:{message:'"用 Python 计算 2 + 2"',toolCall:'python_tool({code:"2 + 2"})',next:'调用 PythonTool.apply()'},w:'真正的“想—做—看—再想”循环在依赖库里，本仓库只负责提供模型和工具。'},
+    {t:'断点 12 · PythonTool 校验请求并执行',f:'PythonTool.java:76-96',c:[['76','@Override'],['77','public String apply(PythonRequest request, ToolContext toolContext) {'],['78','  if (request.code == null || request.code.trim().isEmpty())'],['79','    return "Error: Python code cannot be empty";'],['82','  try (Context context = Context.newBuilder("python")'],['83','    .engine(engine)'],['84','    .allowAllAccess(true)'],['89','    .build()) {'],['95','    Value result = context.eval("python", request.code);'],['96','    return convertResultToString(result);']],a:8,s:['PythonTool.apply(request)','FunctionToolCallback','ReactAgent.call()'],v:{request:'{code:"2 + 2"}',engine:'共享 Engine',result:'Value(4)'},w:'Java 收到模型给的参数，打开 Python Context，执行 2 + 2，得到 GraalVM 的 Value。'},
+    {t:'断点 13 · 把 Python 的 Value 变成人话',f:'PythonTool.java:158-189',c:[['158','private String convertResultToString(Value result) {'],['159','  if (result.isNull()) return "...no return value";'],['164','  if (result.isString()) return result.asString();'],['167','  else if (result.isNumber()) return String.valueOf(result.as(Object.class));'],['170','  else if (result.isBoolean()) return String.valueOf(result.asBoolean());'],['173','  else if (result.hasArrayElements()) { ... }'],['189','  return result.toString();'],['190','}']],a:3,s:['convertResultToString(Value)','PythonTool.apply()','ReactAgent.call()'],v:{valueType:'number',value:'4',javaString:'"4"'},w:'工具必须返回字符串，模型才容易读懂。所以数字 4 最后变成 Java 的 "4"。'},
+    {t:'断点 14 · Controller 把答案退回 HTTP',f:'ChatController.java:27',c:[['27','return String.valueOf(agent.call(message));'],['  ','// 返回内容示意：'],['  ','AssistantMessage [..., textContent=4, metadata=...]']],a:0,s:['ChatController.chat()','HTTP response 200'],v:{agentResult:'AssistantMessage(textContent=4)',response:'字符串返回浏览器'},w:'Controller 不再加工答案，String.valueOf 把 Agent 结果交给 Spring Web。'},
+    {t:'断点 15 · 前端解析后显示',f:'frontend/src/hooks/useChat.ts:55-64 + parse.ts:4-9',c:[['55','const raw = await resp.text()'],['56','const parsed = parseAssistantText(raw)'],['57','setMessages((prev) => [...prev, {'],['58','  role: \'assistant\', text: parsed, raw'],['59','}])'],['63','} finally {'],['64','  setLoading(false)'],['65','}']],a:1,s:['parseAssistantText(raw)','send(text)','ChatArea()'],v:{raw:'AssistantMessage(...textContent=4...)',parsed:'"4"',loading:'false',screen:'显示 4'},w:'先从后端字符串里找 textContent，再把干净的答案放入 messages；finally 无论成功失败都会关掉 loading。'},
+    {t:'异常路线 · 请求失败会去哪？',f:'frontend/src/hooks/useChat.ts:59-65',c:[['59','} catch (e) {'],['60','  const errMsg = e instanceof Error ? e.message : String(e)'],['61','  setError(`请求失败：${errMsg}...`)'],['62','  updateActivity(actId_, { running: false, ... })'],['63','} finally {'],['64','  setLoading(false)'],['65','}']],a:2,s:['catch(e)','send(text)','ChatArea()'],v:{error:'HTTP 500 / 网络错误',activity:'agent 失败',loading:'false'},w:'失败不会卡死界面：显示错误，更新活动栏，最后仍然关闭 loading。'}
+  ];
+  let i=0;const $=id=>document.getElementById(id);function esc(s){return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')}
+  function render(){const s=steps[i];$('count').textContent=(i+1)+' / '+steps.length;$('progress').style.width=((i+1)/steps.length*100)+'%';$('title').innerHTML=esc(s.t)+'<br><small>'+esc(s.f)+'</small>';$('code').innerHTML=s.c.map((x,n)=>'<div class="line '+(n===s.a?'active':'')+'"><span class="ln">'+x[0]+'</span><code>'+esc(x[1])+'</code></div>').join('');$('stack').innerHTML=s.s.map((x,n)=>'<div class="frame '+(n===0?'current':'')+'">↳ '+esc(x)+'</div>').join('');$('vars').innerHTML=Object.entries(s.v).map(([k,v])=>'<dt>'+esc(k)+'</dt><dd>'+esc(v)+'</dd>').join('');$('watch').textContent=s.w}
+  $('next').onclick=()=>{i=Math.min(steps.length-1,i+1);render()};$('prev').onclick=()=>{i=Math.max(0,i-1);render()};$('reset').onclick=()=>{i=0;render()};render();
+</script>
+</body>
+</html>
