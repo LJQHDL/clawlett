@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Clawlett 架构 · ELI5</title>
+  <style>
+    :root {
+      --ink: #18324a;
+      --muted: #5d7287;
+      --paper: #fffdf7;
+      --blue: #cfeeff;
+      --blue-strong: #3d9bd6;
+      --yellow: #fff0b8;
+      --green: #d9f5df;
+      --pink: #ffe0e7;
+      --line: #7aa4bd;
+      --shadow: 0 14px 35px rgba(35, 73, 101, .12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: linear-gradient(135deg, #eaf7ff, #fff7da 55%, #edfbea);
+      font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+      line-height: 1.6;
+    }
+    .wrap { max-width: 1120px; margin: auto; padding: 34px 20px 56px; }
+    .hero, .card { background: rgba(255,255,255,.82); border: 3px solid var(--ink); border-radius: 28px; box-shadow: var(--shadow); }
+    .hero { padding: 30px 32px; transform: rotate(-.4deg); }
+    h1 { margin: 0 0 8px; font-size: clamp(30px, 5vw, 58px); line-height: 1.05; }
+    h2 { margin: 0 0 12px; font-size: 25px; }
+    p { margin: 8px 0; }
+    .subtitle { color: var(--muted); font-size: 18px; }
+    .sticker { display: inline-block; padding: 5px 12px; margin-bottom: 12px; border-radius: 999px; background: var(--yellow); border: 2px solid var(--ink); font-weight: 700; }
+    .card { padding: 24px; margin-top: 24px; }
+    .diagram { overflow-x: auto; padding: 12px 4px 4px; }
+    .flow { min-width: 760px; display: grid; grid-template-columns: 1fr 64px 1.25fr 64px 1fr; align-items: center; gap: 12px; }
+    .node { min-height: 150px; padding: 18px 14px; border: 3px solid var(--ink); border-radius: 22px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    .node .emoji { font-size: 52px; line-height: 1; margin-bottom: 8px; }
+    .node strong { font-size: 20px; }
+    .node small { display: block; color: var(--muted); margin-top: 4px; }
+    .user { background: var(--yellow); }
+    .agent { background: var(--blue); }
+    .world { background: var(--green); }
+    .arrow { font-size: 44px; text-align: center; color: var(--blue-strong); font-weight: 900; }
+    .tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-top: 16px; }
+    .tool { padding: 16px; border: 2px dashed var(--line); border-radius: 18px; background: #fff; text-align: center; }
+    .tool .emoji { font-size: 34px; display: block; }
+    .tool strong { display: block; margin: 4px 0; }
+    .two-col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+    .story { display: grid; gap: 12px; }
+    .step { display: grid; grid-template-columns: 42px 1fr; gap: 10px; align-items: start; }
+    .num { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: var(--pink); border: 2px solid var(--ink); font-weight: 800; }
+    code { padding: 2px 6px; border-radius: 6px; background: #edf3f7; font-family: Consolas, monospace; }
+    .files { display: grid; gap: 10px; }
+    .file { padding: 12px 14px; border-left: 7px solid var(--blue-strong); border-radius: 10px; background: #f7fbfd; }
+    .file b { font-family: Consolas, monospace; }
+    .note { background: #fff7da; border-color: #b88816; }
+    .note p { color: #654e12; }
+    footer { margin-top: 24px; color: var(--muted); font-size: 13px; text-align: center; }
+    @media (max-width: 720px) { .wrap { padding: 20px 12px 40px; } .hero, .card { border-radius: 20px; padding: 20px; } .two-col { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="sticker">ELI5 · 像讲故事一样看代码</div>
+      <h1>Clawlett 是一个会做事的电脑管家</h1>
+      <p class="subtitle">你说一句话，它先想一想，再挑合适的工具替你动手。</p>
+    </section>
+
+    <section class="card">
+      <h2>一张图看懂</h2>
+      <div class="diagram">
+        <div class="flow">
+          <div class="node user"><div class="emoji">🧑</div><strong>你</strong><small>输入：帮我整理文件</small></div>
+          <div class="arrow">→</div>
+          <div class="node agent"><div class="emoji">🤖</div><strong>ReAct Agent</strong><small>思考 → 选工具 → 看结果 → 再决定</small></div>
+          <div class="arrow">→</div>
+          <div class="node world"><div class="emoji">🛠️</div><strong>你的电脑和外部世界</strong><small>文件、网页、Python、Shell、MCP</small></div>
+        </div>
+      </div>
+      <div class="tools">
+        <div class="tool"><span class="emoji">🐍</span><strong>PythonTool</strong><small>算数、处理数据</small></div>
+        <div class="tool"><span class="emoji">🌐</span><strong>BrowserTool</strong><small>打开网页、点击、填表</small></div>
+        <div class="tool"><span class="emoji">📁</span><strong>文件工具</strong><small>读、写、列出文件</small></div>
+        <div class="tool"><span class="emoji">⌨️</span><strong>Shell Hook</strong><small>执行系统命令</small></div>
+        <div class="tool"><span class="emoji">🧩</span><strong>Skills / MCP</strong><small>接入可扩展能力</small></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>一次聊天会发生什么？</h2>
+      <div class="story">
+        <div class="step"><div class="num">1</div><p>前端 React 聊天框把你的话发到后端 <code>GET /chat?message=...</code>。</p></div>
+        <div class="step"><div class="num">2</div><p><code>ChatController</code> 把话交给 <code>SkillsAgent</code>；第一次来时，它才创建 Agent。</p></div>
+        <div class="step"><div class="num">3</div><p>Agent 把问题交给 LLM。LLM 像“指挥员”，判断要不要调用工具。</p></div>
+        <div class="step"><div class="num">4</div><p>工具真的去做事：例如浏览器访问网页，Python 计算，文件工具读写文件。</p></div>
+        <div class="step"><div class="num">5</div><p>工具结果回到 Agent；Agent 继续思考，最后把答案返回前端显示。</p></div>
+      </div>
+    </section>
+
+    <section class="two-col">
+      <section class="card">
+        <h2>每个文件像什么？</h2>
+        <div class="files">
+          <div class="file"><b>ChatController.java</b><br>前台接待员：接收聊天请求。</div>
+          <div class="file"><b>SkillsAgent.java</b><br>总管：组装模型、工具、Skills、记忆。</div>
+          <div class="file"><b>PythonTool.java</b><br>计算员：在 GraalVM 里执行 Python。</div>
+          <div class="file"><b>BrowserTool.java</b><br>浏览员：用 Selenium 控制 Chrome。</div>
+          <div class="file"><b>application.yml</b><br>管家手册：端口、模型、API Key、MCP 地址。</div>
+          <div class="file"><b>frontend/src</b><br>控制台：聊天、加载状态、活动记录。</div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>它的“积木”</h2>
+        <div class="story">
+          <div class="step"><div class="num">🧠</div><p><b>Spring Boot</b>：让 Java 后端启动并提供接口。</p></div>
+          <div class="step"><div class="num">🔌</div><p><b>Spring AI</b>：让程序可以和大模型、工具对话。</p></div>
+          <div class="step"><div class="num">🔁</div><p><b>ReAct</b>：不是只回答，而是“想一步、做一步”。</p></div>
+          <div class="step"><div class="num">🧰</div><p><b>Skills</b>：从 <code>~/.agents/skills</code> 加载可复用技能。</p></div>
+          <div class="step"><div class="num">🌉</div><p><b>MCP</b>：像插座，让外部工具服务器接进来。</p></div>
+          <div class="step"><div class="num">💾</div><p><b>MemorySaver</b>：当前是内存记忆；程序重启后不会保留长期历史。</p></div>
+        </div>
+      </section>
+    </section>
+
+    <section class="card note">
+      <h2>小朋友也要知道的注意事项</h2>
+      <p>这个 Agent 能执行 Shell、读写文件、启动浏览器和安装 Python 包，所以它的权限很大。代码里的“sandboxed”是工具描述，不代表这里已经做了严格隔离；实际运行时要特别小心 API Key、文件目录和命令权限。</p>
+      <p>前端右侧的“活动记录”主要是本地 UI 状态：请求开始时显示，收到最终响应后更新，并不是后端实时推送的工具事件。</p>
+    </section>
+
+    <footer>依据项目中的 README.md、pom.xml、application.yml、SkillsAgent、ChatController 和 frontend/src 代码整理。</footer>
+  </main>
+</body>
+</html>
