@@ -1,0 +1,73 @@
+{
+  "schema_version": "1",
+  "source_path": "D:\\code\\clawlett\\clawlett面试准备-说给5岁听.html",
+  "source_filename": "clawlett面试准备-说给5岁听.html",
+  "source_hash": "8854204f40c5",
+  "source_size_bytes": 20779,
+  "kind": "html",
+  "rendered_at_utc": "2026-09-05T02:22:29+00:00",
+  "output_dir": "D:\\code\\clawlett\\.preview\\8854204f40c5",
+  "page_count": 3,
+  "rendered_page_count": 3,
+  "collage_count": 2,
+  "extracted_text_chars": 17504,
+  "text_relpath": "text.md",
+  "thumbnail_relpath": "thumb.jpg",
+  "pages": [
+    {
+      "page": 1,
+      "relpath": "pages\\p001.png",
+      "size_bytes": 225913,
+      "width": 1280,
+      "height": 1600
+    },
+    {
+      "page": 2,
+      "relpath": "pages\\p002.png",
+      "size_bytes": 165006,
+      "width": 1280,
+      "height": 1600
+    },
+    {
+      "page": 3,
+      "relpath": "pages\\p003.png",
+      "size_bytes": 162643,
+      "width": 1280,
+      "height": 1176
+    }
+  ],
+  "collages": [
+    {
+      "relpath": "collages\\c1.jpg",
+      "covers_pages": [
+        1,
+        2
+      ],
+      "grid_cols": 2,
+      "grid_rows": 1,
+      "size_bytes": 106711
+    },
+    {
+      "relpath": "collages\\c2.jpg",
+      "covers_pages": [
+        3
+      ],
+      "grid_cols": 2,
+      "grid_rows": 1,
+      "size_bytes": 53617
+    }
+  ],
+  "warnings": [],
+  "options": {
+    "max_pages": 12,
+    "collage": true,
+    "page_range": null,
+    "thumbnail": true,
+    "text_only": false,
+    "jpeg_quality": 85,
+    "out_max_dim": 2048
+  },
+  "summary": {
+    "bytes": 20779
+  }
+}

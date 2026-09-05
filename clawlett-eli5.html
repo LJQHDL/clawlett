@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Clawlett 是什么？· ELI5 小孩也能懂</title>
+  <style>
+    :root {
+      --ink: #233047;
+      --muted: #6b7c93;
+      --paper: #fffdf7;
+      --sky: #d9f0ff;
+      --sky-line: #4a9fd4;
+      --sun: #fff0b0;
+      --sun-line: #c9a51e;
+      --grass: #e3f7e3;
+      --grass-line: #4fa65a;
+      --pink: #ffe3ea;
+      --pink-line: #d96a86;
+      --lav: #eee6ff;
+      --lav-line: #8a6fd6;
+      --shadow: 0 16px 40px rgba(40, 60, 90, .14);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: linear-gradient(160deg, #e9f7ff 0%, #fffbe8 48%, #ecf9ec 100%);
+      font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+      line-height: 1.65;
+    }
+    .wrap { max-width: 1060px; margin: 0 auto; padding: 30px 18px 60px; }
+    .hero, .card {
+      background: rgba(255,255,255,.86);
+      border: 3px solid var(--ink);
+      border-radius: 26px;
+      box-shadow: var(--shadow);
+    }
+    .hero { padding: 30px 32px; transform: rotate(-.35deg); }
+    h1 { margin: 0 0 10px; font-size: clamp(30px, 5.4vw, 56px); line-height: 1.08; }
+    h2 { margin: 0 0 14px; font-size: 26px; }
+    .sticker {
+      display: inline-block; padding: 5px 14px; margin-bottom: 14px;
+      border-radius: 999px; background: var(--sun); border: 2px solid var(--ink);
+      font-weight: 800; letter-spacing: .5px;
+    }
+    .subtitle { color: var(--muted); font-size: 19px; margin: 6px 0 0; }
+    .card { padding: 26px; margin-top: 26px; }
+    .pics { font-size: 60px; text-align: center; margin: 4px 0 10px; }
+
+    /* 主流程图 */
+    .diagram { overflow-x: auto; padding: 10px 2px 4px; }
+    .flow { min-width: 780px; display: grid; grid-template-columns: 1fr 60px 1.3fr 60px 1fr; align-items: center; gap: 10px; }
+    .node { min-height: 150px; padding: 16px 12px; border: 3px solid var(--ink); border-radius: 22px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    .node .emoji { font-size: 54px; line-height: 1; margin-bottom: 8px; }
+    .node strong { font-size: 20px; }
+    .node small { display: block; color: var(--muted); margin-top: 5px; }
+    .you { background: var(--sun); }
+    .brain { background: var(--sky); }
+    .world { background: var(--grass); }
+    .arrow { font-size: 42px; text-align: center; color: var(--sky-line); font-weight: 900; }
+
+    /* ReAct 循环 */
+    .loop { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 8px; }
+    .loop .node { min-height: 150px; }
+    .step1 { background: var(--sky); }
+    .step2 { background: var(--grass); }
+    .step3 { background: var(--sun); }
+    .step4 { background: var(--pink); }
+    .loop-arrow { text-align: center; font-size: 26px; color: var(--muted); margin-top: 10px; }
+
+    /* 零件网格 */
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-top: 10px; }
+    .part { padding: 16px 12px; border: 2px dashed var(--ink); border-radius: 18px; background: #fff; text-align: center; }
+    .part .emoji { font-size: 40px; display: block; }
+    .part strong { display: block; margin: 6px 0 4px; }
+    .part small { color: var(--muted); display: block; }
+
+    /* 步骤故事 */
+    .story { display: grid; gap: 12px; }
+    .step { display: grid; grid-template-columns: 46px 1fr; gap: 12px; align-items: start; }
+    .num { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; background: var(--pink); border: 2px solid var(--ink); font-weight: 800; font-size: 18px; }
+    .step b { font-size: 17px; }
+    .step p { margin: 2px 0 0; color: var(--muted); }
+    code { padding: 2px 7px; border-radius: 7px; background: #eaf1f7; font-family: Consolas, monospace; font-size: .92em; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .magic { padding: 18px; border: 3px solid var(--ink); border-radius: 20px; background: #fff; }
+    .magic .emoji { font-size: 46px; }
+    .truth { border-color: var(--pink-line); background: var(--pink); }
+    .truth p { color: #7a2e42; }
+    footer { margin-top: 30px; color: var(--muted); font-size: 13px; text-align: center; }
+    @media (max-width: 760px) {
+      .wrap { padding: 18px 10px 44px; }
+      .hero, .card { border-radius: 18px; padding: 20px; }
+      .loop { grid-template-columns: 1fr 1fr; }
+      .two-col { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="sticker">ELI5 · 用五岁小孩能懂的话讲</div>
+      <h1>Clawlett 是一个「会替你动手」的电脑管家 🤖</h1>
+      <p class="subtitle">你只要说一句话，它就会自己想一想、挑好工具，然后真的在你的电脑上把事情做完。</p>
+    </section>
+
+    <section class="card">
+      <h2>🌟 一张图看懂整体</h2>
+      <div class="diagram">
+        <div class="flow">
+          <div class="node you"><div class="emoji">🧑</div><strong>你</strong><small>说：「帮我整理桌面」</small></div>
+          <div class="arrow">→</div>
+          <div class="node brain"><div class="emoji">🤖</div><strong>管家大脑</strong><small>ReAct：想 → 做 → 看 → 再想</small></div>
+          <div class="arrow">→</div>
+          <div class="node world"><div class="emoji">🖐️</div><strong>双手＋工具</strong><small>跑 Python / 开网页 / 读写文件 / 敲命令</small></div>
+        </div>
+      </div>
+      <p style="margin-top:14px; text-align:center; color:var(--muted)">干完之后，结果还会绕回来给管家看一眼——没干完就继续干，直到完成 ✅</p>
+    </section>
+
+    <section class="card">
+      <h2>🧠 管家是怎么「思考」的？（这叫 ReAct）</h2>
+      <p>ReAct = <b>Re</b>ason（思考）＋ <b>Act</b>（行动）。就像你做手工：先想，再动手，看看效果，再想下一步。</p>
+      <div class="loop">
+        <div class="node step1"><div class="emoji">🤔</div><strong>1. 想</strong><small>看问题，决定「这一步该用什么工具」</small></div>
+        <div class="node step2"><div class="emoji">🖐️</div><strong>2. 做</strong><small>调用一个工具（比如打开浏览器）</small></div>
+        <div class="node step3"><div class="emoji">👀</div><strong>3. 看</strong><small>读工具返回的结果</small></div>
+        <div class="node step4"><div class="emoji">🔁</div><strong>4. 再想</strong><small>完成了吗？没有就回到第 1 步</small></div>
+      </div>
+      <div class="loop-arrow">↺ 一直循环，直到任务完成</div>
+    </section>
+
+    <section class="card">
+      <h2>🧩 管家身上有哪些「零件」？</h2>
+      <div class="grid">
+        <div class="part"><span class="emoji">🧠</span><strong>大脑（LLM）</strong><small>火山方舟大模型，负责「想」</small></div>
+        <div class="part"><span class="emoji">🦴</span><strong>身体（Spring Boot）</strong><small>Java 后端，管家住在这里</small></div>
+        <div class="part"><span class="emoji">🚪</span><strong>大门（/chat）</strong><small>前端控制台 + 接口，你说话的地方</small></div>
+        <div class="part"><span class="emoji">🐍</span><strong>Python 手</strong><small>GraalVM 跑代码，缺包自动装</small></div>
+        <div class="part"><span class="emoji">🌐</span><strong>浏览器手</strong><small>Selenium 控制网页：点、填、截图</small></div>
+        <div class="part"><span class="emoji">📁</span><strong>文件手</strong><small>读文件、写文件、看目录</small></div>
+        <div class="part"><span class="emoji">⚡</span><strong>Shell 手</strong><small>敲系统命令、装软件</small></div>
+        <div class="part"><span class="emoji">🔌</span><strong>USB 口（MCP）</strong><small>外接更多工具，名字都带 mcp_</small></div>
+      </div>
+      <p style="margin-top:16px; color:var(--muted)">还配了一本「技能说明书」📖：管家会从 <code>~/.agents/skills</code> 动态加载技能（比如 Obsidian 相关技能），像临时翻书学习新本领。</p>
+    </section>
+
+    <section class="card">
+      <h2>🎬 一次真实任务的全过程</h2>
+      <p>假设你对管家说：<b>「帮我把桌面上的文件整理一下」</b></p>
+      <div class="story">
+        <div class="step"><div class="num">1</div><div><b>你说话</b><p>前端控制台把你的话送到后端的 <code>/chat</code> 大门。</p></div></div>
+        <div class="step"><div class="num">2</div><div><b>大脑上线</b><p>第一次说话时才「组装」出管家（懒加载），之后它一直住在内存里（MemorySaver）。</p></div></div>
+        <div class="step"><div class="num">3</div><div><b>想 + 做 + 看</b><p>大脑调用 <code>ListFilesTool</code> 看桌面有什么 → 再调用文件工具把文件归类 → 每一步都看结果再决定。</p></div></div>
+        <div class="step"><div class="num">4</div><div><b>遇到不会的</b><p>如果要用某个 Python 库发现没装，它会报错「缺模块」，然后自己 <code>pip install</code> 装好再重试。</p></div></div>
+        <div class="step"><div class="num">5</div><div><b>交差</b><p>完成后把总结文字返回，前端解析出 <code>textContent</code> 显示给你看。</p></div></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>✨ 两个「魔法」 + 一句实话</h2>
+      <div class="two-col">
+        <div class="magic">
+          <div class="emoji">🪄</div>
+          <b>魔法一：会自我补救</b>
+          <p>Python 缺模块？<code>ModuleNotFoundError</code> 一出现，它自己装好再重试。系统没这个软件？它能用 Shell 自己装。</p>
+        </div>
+        <div class="magic">
+          <div class="emoji">💪</div>
+          <b>魔法二：永远不说办不到</b>
+          <p>它的「大脑设定」（系统提示词）写明了：不许说做不到、不许让用户手动做，除非真的需要你提供身份证、Token 这类关键信息。</p>
+        </div>
+      </div>
+      <div class="magic truth" style="margin-top:20px">
+        <div class="emoji">⚠️</div>
+        <b>实话：管家不是关在笼子里的</b>
+        <p>它运行在<b>非沙箱</b>环境——Python 有全部权限、Shell 直接执行、浏览器真会打开。所以它真的能操作你的电脑，这是设计本意；但也意味着：<b>别让它做危险的事。</b></p>
+      </div>
+    </section>
+
+    <footer>Clawlett · Spring AI Alibaba（ReAct）· 简版 Open Claw —— 一个会做事的电脑管家 🦞</footer>
+  </main>
+</body>
+</html>
